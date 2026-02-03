@@ -26,18 +26,18 @@ The software framework consists of four sequential modules designed to handle da
 The framework handles missing values in heterogeneous soil datasets using **Multivariate Imputation by Chained Equations (MICE)**.
 * **Estimator:** An **Extra Trees Regressor** is utilized as the kernel estimator within the iterative imputation process.
 * **Covariance Preservation:** This stochastic approach preserves the multi-dimensional covariance structure between soil texture, organic carbon, and bulk density, ensuring that imputed values remain physically consistent with observed properties.
-* **Preprocessing:** The module automatically filters physically impossible values (e.g., Bulk Density > 2.65 g/cm³) and applies a log-transformation to the target variable ($K_{sat}$) to stabilize variance.
+* **Preprocessing:** The module automatically filters physically impossible values (e.g., Bulk Density > 2.65 g/cm³) and applies a log-transformation to the target variable (Ksat) to stabilize variance.
 
 ### 2. The Physics Engine (Feature Engineering)
 A dedicated computation module automates the injection of domain knowledge by deriving physics-based parameters from raw inputs:
-* **Pore Geometry:** Calculates the *Specific Surface Area Proxy ($S_s$)* and *Hydraulic Diameter ($D_h$)* to model the effective flow path size based on Shin (2021).
+* **Pore Geometry:** Calculates the *Specific Surface Area Proxy* and *Hydraulic Diameter)* to model the effective flow path size based on Shin (2021).
 * **Compaction Constraints:** Computes *Adams’ Theoretical Bulk Density* based on organic matter-mineral interactions to differentiate between structural compaction and organic stabilization (Adams, 1973).
 * **Permeability Factors:** Derives *Shin’s Permeability Factor* and *Quadratic Porosity* to capture non-linear flow responses.
 
 ### 3. The "Grandmaster" Benchmarking Tournament
 The framework executes a comparative benchmark analysis of 15 distinct machine learning algorithms to identify the optimal predictor.
 * **Algorithms:** The repository includes implementations for Linear Baselines (Ridge, Lasso, ElasticNet), Non-Linear Estimators (SVR, Gaussian Processes, MLP), and Ensemble Methods (Random Forest, Extra Trees, XGBoost, LightGBM, CatBoost).
-* **Evaluation Metrics:** Models are evaluated based on Test $R^2$ and the **Generalization Gap** (R^2_{train} - R^2_{test}).
+* **Evaluation Metrics:** Models are evaluated based on Test R2 and the **Generalization Gap** (R2_{train} - R2_{test}).
 * **Model Selection:** The system automatically flags models with a generalization gap exceeding 0.20 as "Overfit" and selects the model maximizing generalization capability as the "Champion."
 
 ### 4. Operational Deployment and Explainability
