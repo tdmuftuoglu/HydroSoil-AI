@@ -4,8 +4,8 @@ Prediction of soil saturated hydraulic conductivity (Ksat) from the Soil Water
 Infiltration Global (SWIG) database, with an evaluation design that respects the
 hierarchical structure of the compilation.
 
-This repository contains the complete analysis pipeline, the figures and tables it
-produces, and a deployable four-input screening model with prediction intervals.
+This repository contains the complete analysis notebook, the input database, and
+every table, figure and model artefact reported in the accompanying manuscript.
 
 ---
 
@@ -40,91 +40,41 @@ Averaged over fifteen algorithms, the optimism introduced by row-wise splitting 
 
 ---
 
-## Requirements
+## Running the analysis
 
-Python 3.10 or later.
+Open `HydroSoilAIv2.ipynb` in Google Colab or Jupyter and run all cells. The
+notebook prompts for the SWIG workbook, or picks it up automatically if
+`SWIG database.xlsx` is present in the working directory.
 
-```
-numpy
-scipy
-pandas
-scikit-learn
-xgboost
-lightgbm
-shap
-matplotlib
-openpyxl
-joblib
-```
+Required packages are `numpy`, `scipy`, `pandas`, `scikit-learn`, `xgboost`,
+`lightgbm`, `shap`, `matplotlib`, `openpyxl` and `joblib`. The notebook installs
+`xgboost`, `lightgbm` and `shap` automatically if they are absent, so it runs in a
+fresh Colab session without preparation.
 
-Install with:
+Runtime is roughly 30–60 minutes. Every expensive loop writes its result to a
+checkpoint file as soon as it completes, so an interrupted run can be resumed by
+running the notebook again; finished work is skipped.
 
-```bash
-pip install -r requirements.txt
-```
-
-The analysis script installs `xgboost`, `lightgbm` and `shap` automatically if
-they are absent, so it can be pasted into a fresh Google Colab notebook and run
-without preparation.
+Set `FAST_MODE = True` in the configuration cell for a two-minute smoke test with
+reduced fold counts and search budget. Results from a fast run are not suitable
+for reporting.
 
 ---
 
 ## Input
 
-A SWIG database workbook (`.xlsx`) containing a metadata sheet and a locations
-sheet. The database is published by Rahmati et al. (2018), *Earth System Science
-Data* 10, 1237–1263.
+`SWIG database.xlsx` is included here for convenience. It was compiled and
+published by Rahmati et al. (2018), *Earth System Science Data* 10, 1237–1263, and
+is redistributed unmodified under its original CC-BY licence. The MIT licence of
+this repository applies to the code, not to the database.
 
-The script locates the file in this order:
-
-1. a path given on the command line
-2. the `SWIG_PATH` environment variable
-3. any `.xlsx` whose name contains "swig", searched in the working directory, the
-   script directory, `/content`, Google Drive, Downloads, Desktop, Documents and
-   the home directory
-4. the Colab upload widget, when running in Colab
-5. a native file-open dialog, when a desktop GUI is available
-6. a path typed at the prompt
-
-Sheet names are matched by the substrings "meta" and "loc". The header row is
-detected automatically. Column names are matched against a table of aliases, so
+The notebook does not hard-code the file name or its internal layout. Sheet names
+are matched by the substrings "meta" and "loc", the header row is detected
+automatically, and column names are matched against a table of aliases, so
 variants such as `BD` for bulk density or `Ks` for conductivity are recognised.
-Optional columns that are absent are created empty; if `dg` and `Sg` are missing
-they are derived from the texture fractions following Shirazi and Boersma (1984).
-
----
-
-## Usage
-
-### Full analysis
-
-```bash
-python HydroSoilAI_analysis.py                       # locate the file automatically
-python HydroSoilAI_analysis.py /path/to/SWIG.xlsx    # or give the path
-```
-
-In Google Colab, paste the whole file into one cell and run it. Everything is
-zipped and downloaded at the end.
-
-Runtime is roughly 30–60 minutes depending on the machine. Every expensive loop
-writes its result to `hydrosoil_v2_output/checkpoints/` as soon as it completes,
-so an interrupted run can be resumed by simply executing the script again:
-finished work is skipped.
-
-Set `FAST_MODE = True` at the top of the file for a two-minute smoke test with
-reduced fold counts and search budget. Results from a fast run are not suitable
-for reporting.
-
-### Prediction with the deployable model
-
-```bash
-python predict_ksat.py --clay 22 --sand 45 --oc 1.4 --db 1.35
-python predict_ksat.py --csv soils.csv --out predictions.csv
-```
-
-The CSV must contain the columns `Clay`, `Sand`, `OC`, `Db` (percent, percent,
-percent, g cm⁻³). Every prediction is returned with a 90 % interval and an
-applicability-domain flag.
+Optional columns that are absent are created empty; if the geometric mean particle
+diameter and its standard deviation are missing they are derived from the texture
+fractions following Shirazi and Boersma (1984).
 
 ---
 
@@ -161,21 +111,24 @@ applicability-domain flag.
 
 ---
 
-## Output
+## Repository contents
 
-```
-hydrosoil_v2_output/
-├── results_tables.xlsx          14 sheets, one per table
-├── analysis_dataset.csv         analysis sample with grouping labels and features
-├── ksat_screening_model.joblib  deployable artefact
-├── run_metadata.json            seed, fold counts, search budget, library versions
-├── figures/                     eight figures at 300 dpi
-└── checkpoints/                 resumable intermediate results
-```
+| File | Content |
+|---|---|
+| `HydroSoilAIv2.ipynb` | the complete analysis pipeline |
+| `SWIG database.xlsx` | input database (Rahmati et al. 2018), redistributed unmodified |
+| `results_tables.xlsx` | every result table, one sheet each |
+| `analysis_dataset.csv` | analysis sample with grouping labels and constructed features |
+| `protocols.csv`, `algorithms.csv`, `ablation.csv`, `oof.pkl` | intermediate results and out-of-fold predictions |
+| `ksat_screening_model.joblib` | deployable four-input screening model |
+| `run_metadata.json` | random seed, fold counts, search budget, sample sizes, library versions |
+| `Fig1_sample.png` … `Fig8_screening_model.png` | the eight figures at 300 dpi |
 
-The serialised artefact contains the imputer, the model, the scaler, the conformal
-constant, the applicability threshold and the measured performance, so that the
-deployed pipeline and the evaluated pipeline are the same object.
+The serialised model contains the imputer, the estimator, the scaler, the
+conformal calibration constant, the applicability-domain threshold and the
+measured performance, so that the deployed pipeline and the evaluated pipeline are
+the same object. It expects clay, sand, organic carbon and bulk density, in that
+order, and predicts log₁₀ Ksat in cm h⁻¹.
 
 ---
 
@@ -190,8 +143,8 @@ deployed pipeline and the evaluated pipeline are the same object.
 | At least one core soil property reported | 1883 |
 
 The final sample spans 45 source datasets in 26 countries, measured with 11
-different instruments. Predictor missingness is substantial: organic carbon 30.5 %,
-texture 15.2 %, bulk density 5.2 %.
+different instruments. Predictor missingness is substantial: organic carbon
+30.5 %, texture 15.2 %, bulk density 5.2 %.
 
 ---
 
@@ -203,7 +156,7 @@ RMSE = 1.087 log₁₀ units, a median multiplicative error of a factor of 3.9, 
 81 % empirical coverage against a nominal 90 %, with a median width spanning a
 factor of about 151 in Ksat.
 
-These figures support use of the tool as an order-of-magnitude screening estimate
+These figures support use of the model as an order-of-magnitude screening estimate
 and as an aid to prioritising where measurements should be made. They do not
 support use as a substitute for a permeameter or infiltrometer measurement, and no
 such claim should be made on the basis of this model.
@@ -214,17 +167,17 @@ such claim should be made on the basis of this model.
 
 One fixed seed (20250812) throughout. The reference run used Python 3.12.13,
 numpy 2.0.2, pandas 2.2.2 and scikit-learn 1.6.1, with five outer folds, three
-inner folds and eight randomised-search candidates per inner loop; these settings
+inner folds and eight randomised-search candidates per inner loop. These settings
 are recorded in `run_metadata.json`.
 
 Every number, table and figure in the accompanying manuscript is generated by this
-pipeline from the raw database file. No result is transcribed by hand.
+notebook from the database file included here. No result is transcribed by hand.
 
 ---
 
 ## Citation
 
-If you use this software, please cite the accompanying manuscript and the SWIG
+If you use this software, please cite the accompanying manuscript and the source
 database:
 
 > Rahmati, M., et al. (2018). Development and analysis of the Soil Water
@@ -234,4 +187,4 @@ database:
 
 ## License
 
-MIT.
+Code: MIT (see `LICENSE`). Database: CC-BY, © Rahmati et al. (2018).
