@@ -126,7 +126,8 @@ the main run and reuse its output rather than repeating it:
 | `soil_analysis.py` | correlation matrix, bulk-density regression, behaviour by texture class |
 
 Each reads `analysis_dataset.csv` and the checkpoint files produced by the
-notebook, so the notebook must be run first.
+notebook, so the notebook must be run first. Paths at the top of each script may
+need adjusting to the location of those files.
 
 ---
 
@@ -211,4 +212,4 @@ database:
 
 ## License
 
-Code: MIT (see `LICENSE`). Database: Rahmati et al. (2018).
+Code: MIT (see `LICENSE`). Database: CC-BY 4.0, © Rahmati et al. (2018).
