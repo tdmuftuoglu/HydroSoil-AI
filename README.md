@@ -229,4 +229,4 @@ database:
 
 ## License
 
-Code: MIT (see `LICENSE`). Database: CC-BY 4.0, © Rahmati et al. (2018).
+Code: MIT (see `LICENSE`). Database: Rahmati et al. (2018).
